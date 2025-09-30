@@ -1,12 +1,9 @@
 using AdminToys;
-using Hazards;
 using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
 using InventorySystem.Items.Firearms.Attachments;
-using LabApi.Features.Wrappers;
 using MapGeneration.Distributors;
 using Mirror;
-using PlayerRoles.PlayableScps.Scp939;
 using UnityEngine;
 using CapybaraToy = AdminToys.CapybaraToy;
 using LightSourceToy = AdminToys.LightSourceToy;

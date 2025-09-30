@@ -3,6 +3,7 @@ using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
 using InventorySystem.Items.Firearms.Attachments;
 using LabApi.Features.Wrappers;
+using Mirror;
 using ProjectMER.Events.Handlers.Internal;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
@@ -324,7 +325,18 @@ public class SchematicBlockData
 
     private GameObject CreatePrefab()
     {
-        return null;
+        var prefab = Convert.ToString(Properties["Prefab"]);
+        var found = uint.TryParse(prefab, out var id)
+            ? NetworkClient.prefabs[id]
+            : NetworkClient.prefabs.Values
+                .FirstOrDefault(x => x.name.Equals(prefab, StringComparison.CurrentCultureIgnoreCase));
+
+        if (found == null)
+        {
+            return null;
+        }
+
+        return Object.Instantiate(found);
     }
 
     private GameObject CreateSinkhole()
@@ -396,7 +408,7 @@ public class SchematicBlockData
         generator.IsOpen = Convert.ToBoolean(Properties["IsOpen"]);
         generator.IsUnlocked = Convert.ToBoolean(Properties["IsUnlocked"]);
         generator.Engaged = Convert.ToBoolean(Properties["Engaged"]);
-        
+
         return generator.gameObject;
     }
 }

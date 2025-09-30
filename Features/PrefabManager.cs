@@ -1,4 +1,5 @@
 using AdminToys;
+using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
 using InventorySystem.Items.Firearms.Attachments;
 using MapGeneration.Distributors;
@@ -59,6 +60,11 @@ public static class PrefabManager
 	public static WaypointToy Waypoint { get; private set; }
 	public static SpawnableCullingParent CullingParent { get; private set; }
 
+	public static ElevatorChamber ElevatorChamber { get; private set; }
+	public static ElevatorChamber ElevatorChamberGates { get; private set; }
+	public static ElevatorChamber ElevatorChamberNuke { get; private set; }
+	public static ElevatorChamber ElevatorChamberCargo { get; private set; }
+    
 	public static void RegisterPrefabs()
 	{
 		foreach (GameObject gameObject in NetworkClient.prefabs.Values)
@@ -226,6 +232,24 @@ public static class PrefabManager
 				continue;
 			}
 
+			if (gameObject.TryGetComponent(out ElevatorChamber chamber))
+			{
+				switch (gameObject.name)
+				{
+					case "ElevatorChamber":
+						ElevatorChamber = chamber;
+						continue;
+					case "ElevatorChamber Gates":
+						ElevatorChamberGates = chamber;
+						continue;
+					case "ElevatorChamberNuke":
+						ElevatorChamberNuke = chamber;
+						continue;
+					case "ElevatorChamberCargo":
+						ElevatorChamberCargo = chamber;
+						continue;
+				}
+			}
 		}
 	}
 }

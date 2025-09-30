@@ -10,6 +10,7 @@ using ProjectMER.Features.Objects;
 using UnityEngine;
 using BreakableDoor = Interactables.Interobjects.BreakableDoor;
 using CapybaraToy = LabApi.Features.Wrappers.CapybaraToy;
+using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
 using LightSourceToy = AdminToys.LightSourceToy;
 using Object = UnityEngine.Object;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
@@ -265,7 +266,53 @@ public class SchematicBlockData
 
     private GameObject CreateElevator()
     {
-        return null;
+        var type = (ElevatorType)Convert.ToInt32(Properties["ElevatorType"]);
+
+        ElevatorChamber elevator;
+        switch (type)
+        {
+            case ElevatorType.Default:
+                elevator = Object.Instantiate(PrefabManager.ElevatorChamber);
+                break;
+            case ElevatorType.Gates:
+                elevator = Object.Instantiate(PrefabManager.ElevatorChamberGates);
+                break;
+            case ElevatorType.Nuke:
+                elevator = Object.Instantiate(PrefabManager.ElevatorChamberNuke);
+                break;
+            case ElevatorType.Cargo:
+                elevator = Object.Instantiate(PrefabManager.ElevatorChamberCargo);
+                break;
+            default:
+                return null;
+        }
+
+        var count = Convert.ToInt32(Properties["DoorCount"]);
+        var doors = new List<ElevatorDoor>();
+        for (var i = 0; i < count; i++)
+        {
+            var obj = new GameObject("Spawned Elevator Door")
+            {
+                transform =
+                {
+                    position = Convert.ToString(Properties[$"Door-{i}-doorPosition"]).ToVector3()
+                }
+            };
+
+            var door = obj.AddComponent<ElevatorDoor>();
+            
+            door._targetPosition = Convert.ToString(Properties[$"Door-{i}-targetPosition"]).ToVector3();
+            door._topPosition = Convert.ToString(Properties[$"Door-{i}-topPosition"]).ToVector3();
+            door._bottomPosition = Convert.ToString(Properties[$"Door-{i}-bottomPosition"]).ToVector3();
+            door.Chamber = elevator;
+            
+            doors.Add(door);
+        }
+
+        elevator._floorDoors = doors;
+        elevator._lastArrivedDestination = doors[Convert.ToInt32(Properties["InitialDoor"])];
+        
+        return elevator.gameObject;
     }
 
     private GameObject CreatePrefab()

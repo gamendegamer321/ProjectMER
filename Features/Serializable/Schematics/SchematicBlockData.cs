@@ -69,6 +69,11 @@ public class SchematicBlockData
         transform.SetParent(parentTransform);
         transform.SetLocalPositionAndRotation(Position, Quaternion.Euler(Rotation));
 
+        if (BlockType is BlockType.Sinkhole or BlockType.Tantrum or BlockType.AmnesticCloud)
+        {
+            return gameObject;
+        }
+
         transform.localScale = BlockType switch
         {
             BlockType.Empty when Scale == Vector3.zero => Vector3.one,
@@ -300,18 +305,18 @@ public class SchematicBlockData
             };
 
             var door = obj.AddComponent<ElevatorDoor>();
-            
+
             door._targetPosition = Convert.ToString(Properties[$"Door-{i}-targetPosition"]).ToVector3();
             door._topPosition = Convert.ToString(Properties[$"Door-{i}-topPosition"]).ToVector3();
             door._bottomPosition = Convert.ToString(Properties[$"Door-{i}-bottomPosition"]).ToVector3();
             door.Chamber = elevator;
-            
+
             doors.Add(door);
         }
 
         elevator._floorDoors = doors;
         elevator._lastArrivedDestination = doors[Convert.ToInt32(Properties["InitialDoor"])];
-        
+
         return elevator.gameObject;
     }
 
@@ -322,12 +327,17 @@ public class SchematicBlockData
 
     private GameObject CreateSinkhole()
     {
-        return null;
+        var sinkhole = SinkholeHazard.Spawn(Position, Quaternion.Euler(Rotation), Scale);
+        return sinkhole.Base.gameObject;
     }
 
     private GameObject CreateTantrum()
     {
-        return null;
+        var tantrum = TantrumHazard.Spawn(Position, Quaternion.Euler(Rotation), Scale);
+        tantrum.DecaySpeed = Convert.ToSingle(Properties["DecaySpeedOverride"]);
+        tantrum.LiveDuration = Convert.ToSingle(Properties["Duration"]);
+
+        return tantrum.Base.gameObject;
     }
 
     private GameObject CreateCamera()
@@ -337,7 +347,12 @@ public class SchematicBlockData
 
     private GameObject CreateAmnesticCloud()
     {
-        return null;
+        var cloud = AmnesticCloudHazard.Spawn(Position, Quaternion.Euler(Rotation), Scale);
+        cloud.AmnesiaDuration = Convert.ToSingle(Properties["AmnesiaDuration"]);
+        cloud.VisualSize = Convert.ToByte(Properties["Size"]);
+        cloud.LiveDuration = Convert.ToSingle(Properties["Duration"]);
+
+        return cloud.Base.gameObject;
     }
 
     private GameObject CreateGenerator()

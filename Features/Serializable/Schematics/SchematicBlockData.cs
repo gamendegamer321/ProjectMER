@@ -9,6 +9,8 @@ using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;
 using UnityEngine;
 using BreakableDoor = Interactables.Interobjects.BreakableDoor;
+using Camera = LabApi.Features.Wrappers.Camera;
+using CameraType = ProjectMER.Features.Enums.CameraType;
 using CapybaraToy = LabApi.Features.Wrappers.CapybaraToy;
 using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
 using LightSourceToy = AdminToys.LightSourceToy;
@@ -342,7 +344,37 @@ public class SchematicBlockData
 
     private GameObject CreateCamera()
     {
-        return null;
+        var type = (CameraType)Convert.ToInt32(Properties["CameraType"]);
+
+        Scp079CameraToy camera;
+        switch (type)
+        {
+            case CameraType.Lcz:
+                camera = Object.Instantiate(PrefabManager.CameraLcz);
+                break;
+            case CameraType.Hcz:
+                camera = Object.Instantiate(PrefabManager.CameraHcz);
+                break;
+            case CameraType.Ez:
+                camera = Object.Instantiate(PrefabManager.CameraEz);
+                break;
+            case CameraType.EzArm:
+                camera = Object.Instantiate(PrefabManager.CameraEzArm);
+                break;
+            case CameraType.Sz:
+                camera = Object.Instantiate(PrefabManager.CameraSz);
+                break;
+            default:
+                return null;
+        }
+
+        camera.VerticalConstraint = Convert.ToString(Properties["VerticalConstraint"]).ToVector2();
+        camera.HorizontalConstraint = Convert.ToString(Properties["HorizontalConstraint"]).ToVector2();
+        camera.ZoomConstraint = Convert.ToString(Properties["ZoomConstraint"]).ToVector2();
+
+        camera.Label = Convert.ToString(Properties["Label"]);
+
+        return camera.gameObject;
     }
 
     private GameObject CreateAmnesticCloud()
@@ -357,6 +389,14 @@ public class SchematicBlockData
 
     private GameObject CreateGenerator()
     {
-        return null;
+        var generator = Object.Instantiate(PrefabManager.Generator);
+        generator._requiredPermission = (DoorPermissionFlags)Convert.ToInt32(Properties["RequiredPermissions"]);
+        generator._totalActivationTime = Convert.ToSingle(Properties["ActivationTime"]);
+        generator._totalDeactivationTime = Convert.ToSingle(Properties["DeactivationTime"]);
+        generator.IsOpen = Convert.ToBoolean(Properties["IsOpen"]);
+        generator.IsUnlocked = Convert.ToBoolean(Properties["IsUnlocked"]);
+        generator.Engaged = Convert.ToBoolean(Properties["Engaged"]);
+        
+        return generator.gameObject;
     }
 }

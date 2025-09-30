@@ -4,6 +4,7 @@ using Interactables.Interobjects;
 using Interactables.Interobjects.DoorUtils;
 using InventorySystem.Items.Firearms.Attachments;
 using LabApi.Features.Wrappers;
+using MapGeneration.Distributors;
 using Mirror;
 using PlayerRoles.PlayableScps.Scp939;
 using UnityEngine;
@@ -34,7 +35,7 @@ public static class PrefabManager
     public static CapybaraToy Capybara { get; private set; }
 
     public static TextToy Text { get; private set; }
-    
+
     public static InvisibleInteractableToy Interactable { get; private set; }
 
     public static Scp079CameraToy CameraLcz { get; private set; }
@@ -71,6 +72,8 @@ public static class PrefabManager
     public static ElevatorChamber ElevatorChamberGates { get; private set; }
     public static ElevatorChamber ElevatorChamberNuke { get; private set; }
     public static ElevatorChamber ElevatorChamberCargo { get; private set; }
+
+    public static Scp079Generator Generator { get; private set; }
 
     public static void RegisterPrefabs()
     {
@@ -256,6 +259,11 @@ public static class PrefabManager
                         ElevatorChamberCargo = chamber;
                         continue;
                 }
+            }
+
+            if (gameObject.TryGetComponent(out Scp079Generator generator))
+            {
+                Generator = generator;
             }
         }
     }

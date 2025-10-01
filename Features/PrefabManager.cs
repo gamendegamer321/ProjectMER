@@ -46,7 +46,7 @@ public static class PrefabManager
     public static ShootingTarget ShootingTargetBinary { get; private set; }
 
     public static Locker PedestalScp018 { get; private set; }
-    public static Locker PedstalScp207 { get; private set; }
+    public static Locker PedestalScp207 { get; private set; }
     public static Locker PedestalScp244 { get; private set; }
     public static Locker PedestalScp268 { get; private set; }
     public static Locker LockerLargeGun { get; private set; }
@@ -55,7 +55,7 @@ public static class PrefabManager
     public static Locker LockerRegularMedkit { get; private set; }
     public static Locker LockerAdrenalineMedkit { get; private set; }
     public static Locker PedestalScp500 { get; private set; }
-    public static Locker PedstalScp1853 { get; private set; }
+    public static Locker PedestalScp1853 { get; private set; }
     public static Locker PedestalScp2176 { get; private set; }
     public static Locker PedestalScp1576 { get; private set; }
     public static Locker PedestalAntiScp207 { get; private set; }
@@ -180,7 +180,7 @@ public static class PrefabManager
                         PedestalScp018 = locker;
                         continue;
                     case "Scp207PedestalStructure Variant":
-                        PedstalScp207 = locker;
+                        PedestalScp207 = locker;
                         continue;
                     case "Scp244PedestalStructure Variant":
                         PedestalScp244 = locker;
@@ -207,7 +207,7 @@ public static class PrefabManager
                         PedestalScp500 = locker;
                         continue;
                     case "Scp1853PedestalStructure Variant":
-                        PedstalScp1853 = locker;
+                        PedestalScp1853 = locker;
                         continue;
                     case "Scp2176PedestalStructure Variant":
                         PedestalScp2176 = locker;

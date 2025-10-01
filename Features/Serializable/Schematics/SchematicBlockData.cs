@@ -8,15 +8,20 @@ using ProjectMER.Events.Handlers.Internal;
 using ProjectMER.Features.Enums;
 using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;
+using ProjectMER.Features.Serializable.Lockers;
 using UnityEngine;
+using Utf8Json;
 using BreakableDoor = Interactables.Interobjects.BreakableDoor;
 using Camera = LabApi.Features.Wrappers.Camera;
 using CameraType = ProjectMER.Features.Enums.CameraType;
 using CapybaraToy = LabApi.Features.Wrappers.CapybaraToy;
 using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
 using LightSourceToy = AdminToys.LightSourceToy;
+using Locker = MapGeneration.Distributors.Locker;
+using LockerChamber = MapGeneration.Distributors.LockerChamber;
 using Object = UnityEngine.Object;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
+using Random = System.Random;
 using TextToy = AdminToys.TextToy;
 using WaypointToy = AdminToys.WaypointToy;
 
@@ -42,6 +47,8 @@ public class SchematicBlockData
 
     public virtual Dictionary<string, object> Properties { get; set; }
 
+    private static readonly Random Random = new();
+
     public GameObject Create(SchematicObject schematicObject, Transform parentTransform)
     {
         GameObject gameObject = BlockType switch
@@ -63,6 +70,7 @@ public class SchematicBlockData
             BlockType.Camera => CreateCamera(),
             BlockType.AmnesticCloud => CreateAmnesticCloud(),
             BlockType.Generator => CreateGenerator(),
+            BlockType.Locker => CreateLocker(),
             _ => CreateEmpty(true)
         };
 
@@ -248,7 +256,7 @@ public class SchematicBlockData
                 door = Object.Instantiate(PrefabManager.DoorGate);
                 break;
             default:
-                return null;
+                return CreateEmpty(true);
         }
 
         if (type is DoorType.Lcz or DoorType.Hcz or DoorType.Ez)
@@ -292,7 +300,7 @@ public class SchematicBlockData
                 elevator = Object.Instantiate(PrefabManager.ElevatorChamberCargo);
                 break;
             default:
-                return null;
+                return CreateEmpty(true);
         }
 
         var count = Convert.ToInt32(Properties["DoorCount"]);
@@ -377,7 +385,7 @@ public class SchematicBlockData
                 camera = Object.Instantiate(PrefabManager.CameraSz);
                 break;
             default:
-                return null;
+                return CreateEmpty(true);
         }
 
         camera.VerticalConstraint = Convert.ToString(Properties["VerticalConstraint"]).ToVector2();
@@ -410,5 +418,125 @@ public class SchematicBlockData
         generator.Engaged = Convert.ToBoolean(Properties["Engaged"]);
 
         return generator.gameObject;
+    }
+
+    private GameObject CreateLocker()
+    {
+        if (Random.Next(100) >= Convert.ToInt32(Properties["Chance"]))
+        {
+            return CreateEmpty();
+        }
+
+        var type = (LockerType)Convert.ToInt32(Properties["LockerType"]);
+
+        Locker locker;
+        switch (type)
+        {
+            case LockerType.PedestalScp500:
+                locker = Object.Instantiate(PrefabManager.PedestalScp500);
+                break;
+            case LockerType.LargeGun:
+                locker = Object.Instantiate(PrefabManager.LockerLargeGun);
+                break;
+            case LockerType.RifleRack:
+                locker = Object.Instantiate(PrefabManager.LockerRifleRack);
+                break;
+            case LockerType.Misc:
+                locker = Object.Instantiate(PrefabManager.LockerMisc);
+                break;
+            case LockerType.Medkit:
+                locker = Object.Instantiate(PrefabManager.LockerRegularMedkit);
+                break;
+            case LockerType.Adrenaline:
+                locker = Object.Instantiate(PrefabManager.LockerAdrenalineMedkit);
+                break;
+            case LockerType.PedestalScp018:
+                locker = Object.Instantiate(PrefabManager.PedestalScp018);
+                break;
+            case LockerType.PedestalScp207:
+                locker = Object.Instantiate(PrefabManager.PedestalScp207);
+                break;
+            case LockerType.PedestalScp244:
+                locker = Object.Instantiate(PrefabManager.PedestalScp244);
+                break;
+            case LockerType.PedestalScp268:
+                locker = Object.Instantiate(PrefabManager.PedestalScp268);
+                break;
+            case LockerType.PedestalScp1853:
+                locker = Object.Instantiate(PrefabManager.PedestalScp1853);
+                break;
+            case LockerType.PedestalScp2176:
+                locker = Object.Instantiate(PrefabManager.PedestalScp2176);
+                break;
+            case LockerType.PedestalScpScp1576:
+                locker = Object.Instantiate(PrefabManager.PedestalScp1576);
+                break;
+            case LockerType.PedestalAntiScp207:
+                locker = Object.Instantiate(PrefabManager.PedestalAntiScp207);
+                break;
+            case LockerType.PedestalScp1344:
+                locker = Object.Instantiate(PrefabManager.PedestalScp1344);
+                break;
+            case LockerType.ExperimentalWeapon:
+                locker = Object.Instantiate(PrefabManager.LockerExperimentalWeapon);
+                break;
+            case LockerType.None:
+            default:
+                return CreateEmpty(true);
+        }
+
+        var keycardPermissions = (DoorPermissionFlags)Convert.ToInt32(Properties["KeycardPermissions"]);
+        var chambers = JsonSerializer.Deserialize<Dictionary<int, List<SerializableLockerItem>>>(
+            JsonSerializer.Serialize(Properties["Chambers"]));
+
+        var options = new Queue<int>();
+        if (Convert.ToBoolean(Properties["ShuffleChambers"]))
+        {
+            var clone = chambers.Keys.ToList();
+            while (clone.Count > 0)
+            {
+                options.Enqueue(clone.PullRandomItem());
+            }
+        }
+        else
+        {
+            var all = chambers.Keys.ToList();
+            all.Sort();
+            foreach (var number in all)
+            {
+                options.Enqueue(number);
+            }
+        }
+
+        foreach (var chamber in locker.Chambers)
+        {
+            chamber.RequiredPermissions = keycardPermissions;
+
+            if (options.Count == 0)
+            {
+                continue;
+            }
+
+            if (!chambers.TryGetValue(options.Dequeue(), out var chamberLoot))
+            {
+                continue;
+            }
+
+            var total = chamberLoot.Select(x => x.Chance).Sum();
+            var item = Random.NextDouble() * total;
+
+            double count = 0;
+            foreach (var loot in chamberLoot)
+            {
+                count += loot.Chance;
+
+                if (count > item)
+                {
+                    chamber.SpawnItem((ItemType)Enum.Parse(typeof(ItemType), loot.Item), (int)loot.Count);
+                }
+            }
+        }
+
+        return locker.gameObject;
     }
 }

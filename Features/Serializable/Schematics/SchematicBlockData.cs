@@ -72,6 +72,7 @@ public class SchematicBlockData
             BlockType.Camera => CreateCamera(),
             BlockType.Generator => CreateGenerator(),
             BlockType.Locker => CreateLocker(),
+            BlockType.ShootingTarget => CreateShootingTarget(),
             _ => CreateEmpty(true)
         };
 
@@ -505,7 +506,7 @@ public class SchematicBlockData
                 locker.FillChamber(chamber);
                 continue;
             }
-            
+
             var total = chamberLoot.Select(x => x.Chance).Sum();
             var item = Random.NextDouble() * total;
 
@@ -523,5 +524,30 @@ public class SchematicBlockData
         }
 
         return locker.gameObject;
+    }
+
+    private GameObject CreateShootingTarget()
+    {
+        var type = (TargetType)Convert.ToInt32(Properties["Type"]);
+
+        ShootingTarget target;
+        switch (type)
+        {
+            case TargetType.Sport:
+                target = Object.Instantiate(PrefabManager.ShootingTargetSport);
+                break;
+            case TargetType.ClassD:
+                target = Object.Instantiate(PrefabManager.ShootingTargetDBoy);
+                break;
+            case TargetType.Binary:
+                target = Object.Instantiate(PrefabManager.ShootingTargetBinary);
+                break;
+            default:
+                return CreateEmpty(true);
+        }
+
+        target._syncMode = Convert.ToBoolean(Properties["Global"]);
+
+        return target.gameObject;
     }
 }

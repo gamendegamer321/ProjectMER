@@ -54,5 +54,6 @@ public enum BlockType
     Prefab = 14,
     Sinkhole = 15,
     Camera = 16,
-    Generator = 17
+    Generator = 17,
+    ShootingTarget = 18
 }

@@ -10,7 +10,6 @@ using ProjectMER.Features.Extensions;
 using ProjectMER.Features.Objects;
 using UnityEngine;
 using BreakableDoor = Interactables.Interobjects.BreakableDoor;
-using Camera = LabApi.Features.Wrappers.Camera;
 using CameraType = ProjectMER.Features.Enums.CameraType;
 using CapybaraToy = LabApi.Features.Wrappers.CapybaraToy;
 using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
@@ -42,6 +41,8 @@ public class SchematicBlockData
 
     public virtual Dictionary<string, object> Properties { get; set; }
 
+    public static readonly BlockType[] NoParentTypes = [BlockType.Door];
+
     public GameObject Create(SchematicObject schematicObject, Transform parentTransform)
     {
         GameObject gameObject = BlockType switch
@@ -72,11 +73,6 @@ public class SchematicBlockData
         transform.SetParent(parentTransform);
         transform.SetLocalPositionAndRotation(Position, Quaternion.Euler(Rotation));
 
-        if (BlockType is BlockType.Sinkhole or BlockType.Tantrum or BlockType.AmnesticCloud)
-        {
-            return gameObject;
-        }
-
         transform.localScale = BlockType switch
         {
             BlockType.Empty when Scale == Vector3.zero => Vector3.one,
@@ -97,6 +93,11 @@ public class SchematicBlockData
             }
         }
 
+        if (NoParentTypes.Contains(BlockType)) // Temporarily remove the parent again
+        {
+            transform.SetParent(null);
+        }
+        
         return gameObject;
     }
 
@@ -228,7 +229,7 @@ public class SchematicBlockData
     private GameObject CreateDoor()
     {
         var type = (DoorType)Convert.ToInt32(Properties["DoorType"]);
-
+        
         DoorVariant door;
         switch (type)
         {

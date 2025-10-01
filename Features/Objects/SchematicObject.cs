@@ -172,6 +172,12 @@ public class SchematicObject : MonoBehaviour
 
 		if (block.BlockType != BlockType.Light && TryGetAnimatorController(block.AnimatorName, out RuntimeAnimatorController animatorController))
 			_animators.Add(gameObject, animatorController);
+		
+		// Add the parent now so it gets removed when removing the schematic
+		if (SchematicBlockData.NoParentTypes.Contains(block.BlockType))
+		{
+			gameObject.transform.SetParent(parentTransform);
+		}
 
 		return gameObject.transform;
 	}

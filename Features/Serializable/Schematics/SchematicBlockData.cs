@@ -17,7 +17,6 @@ using CapybaraToy = LabApi.Features.Wrappers.CapybaraToy;
 using ElevatorDoor = Interactables.Interobjects.ElevatorDoor;
 using LightSourceToy = AdminToys.LightSourceToy;
 using Locker = MapGeneration.Distributors.Locker;
-using LockerChamber = MapGeneration.Distributors.LockerChamber;
 using Object = UnityEngine.Object;
 using PrimitiveObjectToy = AdminToys.PrimitiveObjectToy;
 using Random = System.Random;
@@ -46,7 +45,10 @@ public class SchematicBlockData
 
     public virtual Dictionary<string, object> Properties { get; set; }
 
-    public static readonly BlockType[] NoParentTypes = [BlockType.Door];
+    public static readonly BlockType[] NoParentTypes =
+    [
+        BlockType.Door, BlockType.Prefab, BlockType.Sinkhole
+    ];
 
     private static readonly Random Random = new();
 
@@ -67,9 +69,7 @@ public class SchematicBlockData
             BlockType.Elevator => CreateElevator(),
             BlockType.Prefab => CreatePrefab(),
             BlockType.Sinkhole => CreateSinkhole(),
-            BlockType.Tantrum => CreateTantrum(),
             BlockType.Camera => CreateCamera(),
-            BlockType.AmnesticCloud => CreateAmnesticCloud(),
             BlockType.Generator => CreateGenerator(),
             BlockType.Locker => CreateLocker(),
             _ => CreateEmpty(true)
@@ -105,7 +105,7 @@ public class SchematicBlockData
         {
             transform.SetParent(null);
         }
-        
+
         return gameObject;
     }
 
@@ -237,7 +237,7 @@ public class SchematicBlockData
     private GameObject CreateDoor()
     {
         var type = (DoorType)Convert.ToInt32(Properties["DoorType"]);
-        
+
         DoorVariant door;
         switch (type)
         {
@@ -340,27 +340,16 @@ public class SchematicBlockData
             : NetworkClient.prefabs.Values
                 .FirstOrDefault(x => x.name.Equals(prefab, StringComparison.CurrentCultureIgnoreCase));
 
-        if (found == null)
-        {
-            return null;
-        }
+        if (found != null) return Object.Instantiate(found);
 
-        return Object.Instantiate(found);
+        Logger.Warn($"Could not find the prefab: {prefab}");
+        return CreateEmpty();
     }
 
     private GameObject CreateSinkhole()
     {
         var sinkhole = SinkholeHazard.Spawn(Position, Quaternion.Euler(Rotation), Scale);
         return sinkhole.Base.gameObject;
-    }
-
-    private GameObject CreateTantrum()
-    {
-        var tantrum = TantrumHazard.Spawn(Position, Quaternion.Euler(Rotation), Scale);
-        tantrum.DecaySpeed = Convert.ToSingle(Properties["DecaySpeedOverride"]);
-        tantrum.LiveDuration = Convert.ToSingle(Properties["Duration"]);
-
-        return tantrum.Base.gameObject;
     }
 
     private GameObject CreateCamera()
@@ -396,16 +385,6 @@ public class SchematicBlockData
         camera.Label = Convert.ToString(Properties["Label"]);
 
         return camera.gameObject;
-    }
-
-    private GameObject CreateAmnesticCloud()
-    {
-        var cloud = AmnesticCloudHazard.Spawn(Position, Quaternion.Euler(Rotation), Scale);
-        cloud.AmnesiaDuration = Convert.ToSingle(Properties["AmnesiaDuration"]);
-        cloud.VisualSize = Convert.ToByte(Properties["Size"]);
-        cloud.LiveDuration = Convert.ToSingle(Properties["Duration"]);
-
-        return cloud.Base.gameObject;
     }
 
     private GameObject CreateGenerator()
@@ -509,20 +488,24 @@ public class SchematicBlockData
             }
         }
 
+        locker._serverChambersFilled = true;
+
         foreach (var chamber in locker.Chambers)
         {
             chamber.RequiredPermissions = keycardPermissions;
 
             if (options.Count == 0)
             {
+                locker.FillChamber(chamber);
                 continue;
             }
 
             if (!chambers.TryGetValue(options.Dequeue(), out var chamberLoot))
             {
+                locker.FillChamber(chamber);
                 continue;
             }
-
+            
             var total = chamberLoot.Select(x => x.Chance).Sum();
             var item = Random.NextDouble() * total;
 
@@ -534,6 +517,7 @@ public class SchematicBlockData
                 if (count > item)
                 {
                     chamber.SpawnItem((ItemType)Enum.Parse(typeof(ItemType), loot.Item), (int)loot.Count);
+                    break;
                 }
             }
         }

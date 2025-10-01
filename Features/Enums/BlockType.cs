@@ -53,8 +53,6 @@ public enum BlockType
     Elevator = 13,
     Prefab = 14,
     Sinkhole = 15,
-    Tantrum = 16,
-    Camera = 17,
-    AmnesticCloud = 18,
-    Generator = 19
+    Camera = 16,
+    Generator = 17
 }

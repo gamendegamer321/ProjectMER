@@ -58,6 +58,17 @@ public static class StructExtensions
 		return new Vector2(Convert.ToSingle(dict["x"]), Convert.ToSingle(dict["y"]));
 	}
 
+	public static Vector2 StringToVector2(this string s)
+	{
+		s = s.Trim('(', ')').Replace(" ", "");
+		string[] split = s.Split(',');
+
+		float x = float.Parse(split[0], CultureInfo.InvariantCulture);
+		float y = float.Parse(split[1], CultureInfo.InvariantCulture);
+
+		return new Vector2(x, y);
+	}
+
 	public static bool TryParseToFloat(this string s, out float result) => float.TryParse(s.Replace(',', '.'), NumberStyles.Any, CultureInfo.InvariantCulture, out result);
 
 	public static bool TryGetVector(string x, string y, string z, out Vector3 vector)
